@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <style>
+        /* Set body to full screen */
+        body {
+            background-color: #f2f2f2;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Set table width to 100% */
+        table {
+            width: 95%;
+            border: 1px solid black;
+            margin-top: 50px;
+            margin-right: auto;
+        }
+
+        /* Set tr and td border to 1px solid black */
+        tr, td {
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        /* Set tr that contains th to flex */
+        tr:nth-child(0) {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+    </style>
+    <body>
+        <!-- Notification div to tell the user that the year is the wrong format -->
+        <div id="notification" style="display: none;color: crimson;">
+            <p>The year is not in the correct format</p>
+        </div>
+        <div>
+            <label for="year">Année :</label>
+            <input list="years" name="year" pattern="\d{4}" autocomplete="off" value="2021">
+            <label for="name">Spécialité :</label>
+            <input list="names" name="name" style="width: 300px;" autocomplete="off">
+            <label for="location">Lieu</label>
+            <input list="locations" name="location" style="width: 300px;" autocomplete="off">
+
+            <datalist id="years"></datalist>
+            <datalist id="names"></datalist>
+            <datalist id="locations"></datalist>
+            <button type="button">Rechercher</button>
+        </div>
+        <!-- Div that contains the year and the number of students -->
+        <div>
+            <p>Année : <span id="year"></span></p>
+            <p>Nombre d'étudiants : <span id="number"></span></p>
+        </div>
+        <div id="content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Spécialité</th>
+                        <th>Lieu</th>
+                        <th>Position</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <script>
+            let content = document.getElementById('content')
+
+            // Fetch ./years and add them to the datalist of years
+            // The response is an array of strings
+            fetch('./years')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(element => {
+                        let option = document.createElement('option')
+                        option.value = element
+                        document.getElementById('years').appendChild(option)
+                    })
+                })
+
+            function getNames(y) {
+                // Fetch ./names and add them to the datalist of names
+                // The response is an array of strings
+                fetch(`./names?year=${y}`)
+                    .then(response => response.json())
+                    .then(names => {
+                        // Remove all options from the datalist of names
+                        while (document.getElementById('names').firstChild) {
+                            document.getElementById('names').removeChild(document.getElementById('names').firstChild)
+                        }
+                        
+                        names.forEach(name => {
+                            let option = document.createElement('option')
+                            option.value = name
+                            document.getElementById('names').appendChild(option)
+                        })
+                    })
+            }
+            getNames(2021)
+
+            function getLocations(y) {
+                // Fetch ./locations and add them to the datalist of locations
+                // The response is an array of strings
+                fetch(`./locations?year=${y}`)
+                    .then(response => response.json())
+                    .then(locations => {
+                        // Remove all options from the datalist of locations
+                        while (document.getElementById('locations').firstChild) {
+                            document.getElementById('locations').removeChild(document.getElementById('locations').firstChild)
+                        }
+
+                        locations.forEach(location => {
+                            let option = document.createElement('option')
+                            option.value = location
+                            document.getElementById('locations').appendChild(option)
+                        })
+                    })
+            }
+            getLocations(2021)
+
+            // Store button, year, name and location in variables
+            let button = document.querySelector('button')
+            let year = document.querySelector('input[name="year"]')
+            let name = document.querySelector('input[name="name"]')
+            let _location = document.querySelector('input[name="location"]')
+
+            // Fetch result of ./filter?year=${year}&name=${name}&location=${location} on click of button
+            button.addEventListener('click', () => {
+                getNames(year.value)
+                getLocations(year.value)
+                fetchAction()
+            })
+
+            // Use fetch action on keypress of enter
+            year.addEventListener('keypress', (e) => {
+                if (e.keyCode === 13) {
+                    getNames(year.value)
+                    getLocations(year.value)
+                    fetchAction()
+                }
+            })
+
+            // Use fetch action on keypress of letters (including diacritics) for name and location
+            // Use fetch action on keypress of backspace for name and location
+            name.addEventListener('keyup', (e) => {
+                if (e.keyCode === 8 || e.keyCode === 13 || e.keyCode === 46) {
+                    fetchAction()
+                }
+                if (e.key.match(/^[ a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð]$/)) {
+                    fetchAction()
+                }
+            })
+            _location.addEventListener('keyup', (e) => {
+                if (e.keyCode === 8 || e.keyCode === 13 || e.keyCode === 46) {
+                    fetchAction()
+                }
+                if (e.key.match(/^[ a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð]$/)) {
+                    fetchAction()
+                }
+            })
+
+            function fetchAction() {
+                // If year isn't /\d{4}/, return
+                if (!year.value.match(/\d{4}/)) {
+                    document.getElementById('notification').style.display = 'block'
+                    return
+                }
+                document.getElementById('notification').style.display = 'none'
+
+
+                fetch(`./filter?year=${year.value}&name=${name.value}&location=${_location.value}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data)
+                        // Clear table except for no result row
+                        content.innerHTML = ''
+                        content.innerHTML += `<table><thead><tr><th>Spécialité</th><th>Lieu</th><th>Position</th></tr></thead><tbody></tbody></table>`
+                        
+                        // Data is an array of objects
+                        // Data.year is the year
+                        // Data.store is an array of arrays
+                        // Each array of store contains the following elements:
+                        // [0] => position
+                        // [1] => name
+                        // [2] => location
+                        // Data.students is the number of students
+
+                        let yearData = data.year
+                        let storeData = data.store
+                        let studentsData = data.students
+
+                        // Display year and number of students
+                        document.getElementById('year').innerHTML = yearData
+                        document.getElementById('number').innerHTML = studentsData
+
+                        console.log(storeData)
+                        // Sort storeData by position
+                        storeData.sort((a, b) => a[0] - b[0])
+
+                        // Display store data
+                        storeData.forEach(store => {
+                            let tr = document.createElement('tr')
+                            tr.innerHTML = `<td>${store[1]}</td><td>${store[2]}</td><td>${store[0]}</td>`
+                            content.querySelector('tbody').appendChild(tr)
+                        })
+
+                        // If no result, display no result row
+                        if (storeData.length === 0) {
+                            let tr = document.createElement('tr')
+                            tr.innerHTML = `<td colspan="3">Aucun résultat</td>`
+                            content.querySelector('tbody').appendChild(tr)
+                        }
+
+                    })
+                    .catch(error => console.error(error))
+            }
+        </script>
+    </body>
+</html>
