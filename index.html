@@ -138,7 +138,7 @@
 
             // Use fetch action on keypress of enter
             year.addEventListener('keypress', (e) => {
-                if (e.keyCode === 13) {
+                if (e.keyCode === 13 || e.keyCode === 9) {
                     getNames(year.value)
                     getLocations(year.value)
                     fetchAction()
@@ -148,7 +148,7 @@
             // Use fetch action on keypress of letters (including diacritics) for name and location
             // Use fetch action on keypress of backspace for name and location
             name.addEventListener('keyup', (e) => {
-                if (e.keyCode === 8 || e.keyCode === 13 || e.keyCode === 46) {
+                if (e.keyCode === 8 || e.keyCode === 13 || e.keyCode === 46 || e.keyCode === 9) {
                     fetchAction()
                 }
                 if (e.key.match(/^[ a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð]$/)) {
@@ -156,7 +156,7 @@
                 }
             })
             _location.addEventListener('keyup', (e) => {
-                if (e.keyCode === 8 || e.keyCode === 13 || e.keyCode === 46) {
+                if (e.keyCode === 8 || e.keyCode === 13 || e.keyCode === 46 || e.keyCode === 9) {
                     fetchAction()
                 }
                 if (e.key.match(/^[ a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð]$/)) {
